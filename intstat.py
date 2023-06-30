@@ -27,7 +27,7 @@ def read_proc():
             ints = (
                 [int(fields[1])]
                 if irq in ["MIS", "ERR"]
-                else [int(x) for x in fields[1 : len(cpu_names)+1]]
+                else [int(x) for x in fields[1 : len(cpu_names) + 1]]
             )
             entries.append(IRQEntry(irq, desc, cpu_names, ints))
         return entries
@@ -64,12 +64,20 @@ def print_rows(rows, args):
             x.cpus = [x.cpus[i] for i in cpuset]
             x.ints = [x.ints[i] for i in cpuset]
 
-    width = max(len(str(max(sum([x.ints for x in rows], [])))), len(rows[0].cpus[-1])) +1
-    fmt = "{:3} | " + " ".join([('{:>'+str(width)+"}").format(i) for i in rows[0].cpus])
+    width = (
+        max(len(str(max(sum([x.ints for x in rows], [])))), len(rows[0].cpus[-1])) + 1
+    )
+    fmt = "{:3} | " + " ".join(
+        [("{:>" + str(width) + "}").format(i) for i in rows[0].cpus]
+    )
     print(fmt.format(""))
     for x in rows:
         if sum(x.ints) != 0 or args.zero:
-            fmt = "{:3} | " + " ".join([('{:'+str(width)+"}").format(i) for i in x.ints])
+            fmt = "{:3} | " + " ".join(
+                [("{:" + str(width) + "}").format(i) for i in x.ints]
+            )
+            if args.desc:
+                fmt += " " + x.desc
             print(fmt.format(x.irq))
 
 
@@ -97,5 +105,8 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
     parser.add_argument(
         "-c", "--cpus", default="", help="CPU masks, begins at 0. eg: '1-2,4'"
+    )
+    parser.add_argument(
+        "-d", "--desc", action="store_true", help="Show the description of IRQ"
     )
     main(parser.parse_args())
