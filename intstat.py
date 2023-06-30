@@ -22,7 +22,7 @@ def read_proc():
         cpu_names = [x for x in fd.readline().strip().split(" ") if x]
         for raw_line in [x for x in fd.readlines() if x]:
             fields = [x for x in raw_line.strip().split(" ") if x]
-            irq = fields[0].rstrip(":")
+            irq = fields[0].rstrip(":").strip()
             desc = " ".join(fields[len(cpu_names) + 1 :])
             ints = (
                 [int(fields[1])]
@@ -59,6 +59,14 @@ def diff(old, new):
 
 def print_rows(rows, args):
     cpuset = range_list(args.cpus)
+    if args.non_trivial:
+        for i in range(len(rows[0].cpus)):
+            s = 0
+            for x in rows:
+                if x.irq.isnumeric():
+                    s += x.ints[i]
+            if s != 0:
+                cpuset.append(i)
     if cpuset:
         for x in rows:
             x.cpus = [x.cpus[i] for i in cpuset]
@@ -108,5 +116,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-d", "--desc", action="store_true", help="Show the description of IRQ"
+    )
+    parser.add_argument(
+        "-n",
+        "--non-trivial",
+        action="store_true",
+        help="Ignore CPUs without any interrupts.",
     )
     main(parser.parse_args())
